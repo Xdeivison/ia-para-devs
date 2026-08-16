@@ -1,0 +1,21 @@
+name: validate
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  repo-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect accidental secrets-like files
+        run: |
+          ! find . -type f \( -name '.env' -o -name '*.pem' -o -name '*.key' \) -print | grep .
+      - name: Validate JSON examples
+        run: python - <<'PY'
+          import json, pathlib
+          for p in pathlib.Path('.').rglob('*.json'):
+              json.loads(p.read_text(encoding='utf-8'))
+              print('ok', p)
+          PY
